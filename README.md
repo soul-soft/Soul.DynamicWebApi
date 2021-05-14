@@ -1,6 +1,8 @@
 # Soul.DynamicWebAPI
 Soul.DynamicWebAPI
 
+abp vnext 动态api实现
+
 ``` C#
  public class Startup
   {
