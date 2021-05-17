@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.DynamicWebAPI.Test.Controllers
+namespace Soul.DynamicWebApi.Test.Controllers
 {
     [ApiController]
     [Route("[controller]")]

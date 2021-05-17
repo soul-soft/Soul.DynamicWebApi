@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Soul.DynamicWebAPI;
+using Soul.DynamicWebApi;
 using System;
 using System.Linq;
 

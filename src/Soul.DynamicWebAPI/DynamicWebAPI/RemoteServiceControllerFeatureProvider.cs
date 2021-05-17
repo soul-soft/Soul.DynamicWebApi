@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Controllers;
 using System.Reflection;
 
-namespace Soul.DynamicWebAPI
+namespace Soul.DynamicWebApi
 {
     internal class RemoteServiceControllerFeatureProvider : ControllerFeatureProvider
     {

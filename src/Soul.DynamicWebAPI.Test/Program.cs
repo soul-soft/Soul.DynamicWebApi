@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.DynamicWebAPI.Test
+namespace Soul.DynamicWebApi.Test
 {
     public class Program
     {

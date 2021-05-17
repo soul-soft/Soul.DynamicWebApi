@@ -1,6 +1,6 @@
 using System;
 
-namespace Soul.DynamicWebAPI.Test
+namespace Soul.DynamicWebApi.Test
 {
     public class WeatherForecast
     {

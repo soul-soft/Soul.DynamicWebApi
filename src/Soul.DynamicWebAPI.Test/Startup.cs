@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Soul.DynamicWebAPI.Test
+namespace Soul.DynamicWebApi.Test
 {
     public class Startup
     {
@@ -26,10 +26,10 @@ namespace Soul.DynamicWebAPI.Test
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddRemoteServices(o=> 
+            services.AddRemoteServices(o =>
             {
-                //o.ControllerNamePrefix = "api/";
-                o.ServiceNamePrefix = "api/";
+                o.ControllerNamePrefix = "api";
+                o.ServiceNamePrefix = "api";
             });
             services.AddSwaggerGen(c =>
             {

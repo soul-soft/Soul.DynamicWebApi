@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Soul.DynamicWebAPI;
+using Soul.DynamicWebApi;
 
-namespace Soul.DynamicWebAPI.Test.RemoteServices
+namespace Soul.DynamicWebApi.Test.RemoteServices
 {
     public class Todo1AppService : IRemoteService
     {
@@ -14,38 +14,38 @@ namespace Soul.DynamicWebAPI.Test.RemoteServices
         {
             _logger = logger;
         }
-        private Task Createxxxp()
-        {
-            _logger.LogInformation("private Createxxx");
-            return Task.CompletedTask;
-        }
-        public Task Createxxx()
+        public Task CreateMyJobAsync()
         {
             _logger.LogInformation("Createxxx");
             return Task.CompletedTask;
         }
 
-        public Task Updatexxx()
+        public Task UpdateAsync()
         {
             _logger.LogInformation("Updatexxx");
             return Task.CompletedTask;
         }
-        public Task Updatexxx(int id, Todo1Dto dto)
+        public Task UpdateJobAsync(int id, Todo1Dto dto)
         {
             _logger.LogInformation("Updatexxx (id ,dto)");
             return Task.CompletedTask;
         }
-        public Task Deletexxx(int id)
+        public Task DeleteAsync(int id)
         {
             _logger.LogInformation("Deletexxx (id)");
             return Task.CompletedTask;
         }
-        public Task<Todo1Dto> Getxxx(int id)
+        public Task DeleteJobAsync(int id)
+        {
+            _logger.LogInformation("Deletexxx (id)");
+            return Task.CompletedTask;
+        }
+        public Task<Todo1Dto> GetAsync(int id)
         {
             _logger.LogInformation("Getxxx (id)");
             return Task.FromResult(new Todo1Dto());
         }
-        public Task<List<Todo1Dto>> Getxxx(Todo1Model dto)
+        public Task<List<Todo1Dto>> GetListAsync(Todo1Model dto)
         {
             _logger.LogInformation("Getxxx (dto)");
             return Task.FromResult(new List<Todo1Dto>());

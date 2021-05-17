@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Soul.DynamicWebAPI
+namespace Soul.DynamicWebApi
 {
     internal class RemoteServiceApplicationModelConvention : IApplicationModelConvention
     {
@@ -35,7 +35,6 @@ namespace Soul.DynamicWebAPI
 
         private void ApplyControllerModel(ControllerModel controllerModel)
         {
-
             if (typeof(IRemoteService).IsAssignableFrom(controllerModel.ControllerType))
             {
                 if (controllerModel.ApiExplorer.IsVisible == null)
@@ -57,7 +56,15 @@ namespace Soul.DynamicWebAPI
                     {
                         item.EndpointMetadata.Add(new RouteAttribute("[controller]"));
                     }
-                    item.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(_options.ServiceNamePrefix + "[controller]"));
+                    if (item.AttributeRouteModel == null)
+                    {
+                        item.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute("[controller]"));
+                    }
+                    if (!string.IsNullOrEmpty(_options.ServiceNamePrefix))
+                    {
+                        var prefixRoute = new AttributeRouteModel(new RouteAttribute(_options.ServiceNamePrefix));
+                        item.AttributeRouteModel = AttributeRouteModel.CombineAttributeRouteModel(prefixRoute, item.AttributeRouteModel);
+                    }
                 }
             }
             else if (!string.IsNullOrEmpty(_options.ControllerNamePrefix))
@@ -82,49 +89,67 @@ namespace Soul.DynamicWebAPI
             {
                 actionModel.ApiExplorer.IsVisible = true;
             }
-            foreach (var selectorModel in actionModel.Selectors.Where(a => a.ActionConstraints.Count == 0))
+            foreach (var selectorModel in actionModel.Selectors)
             {
-                var method = HttpMethods.Post;
-                if (actionModel.ActionName.StartsWith("Get", StringComparison.CurrentCultureIgnoreCase))
+                //如果存在httpMethod
+                if (selectorModel.ActionConstraints.Count == 0)
                 {
-                    method = HttpMethods.Get;
-                    selectorModel.EndpointMetadata.Add(new HttpGetAttribute());
-                }
-                else if (actionModel.ActionName.StartsWith("Update", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    method = HttpMethods.Put;
-                    selectorModel.EndpointMetadata.Add(new HttpPutAttribute());
-                }
-                else if (actionModel.ActionName.StartsWith("Delete", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    method = HttpMethods.Delete;
-                    selectorModel.EndpointMetadata.Add(new HttpDeleteAttribute());
-                }
-                else
-                {
-                    selectorModel.EndpointMetadata.Add(new HttpPostAttribute());
-                }
-                selectorModel.ActionConstraints.Add(new HttpMethodActionConstraint(new[] { method }));
-                var templateBulder = new StringBuilder();
-                foreach (var parameterModel in actionModel.Parameters)
-                {
-                    if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
+                    var method = HttpMethods.Post;
+                    if (actionModel.ActionName.StartsWith("Get", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromRouteAttribute() });
-                        templateBulder.Append("{" + parameterModel.Name + "}");
+                        method = HttpMethods.Get;
+                        selectorModel.EndpointMetadata.Add(new HttpGetAttribute());
                     }
-                    else if (method == HttpMethods.Get || parameterModel.ParameterType.IsValueType || parameterModel.ParameterType == typeof(string))
+                    else if (actionModel.ActionName.StartsWith("Update", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromQueryAttribute() });
+                        method = HttpMethods.Put;
+                        selectorModel.EndpointMetadata.Add(new HttpPutAttribute());
+                    }
+                    else if (actionModel.ActionName.StartsWith("Delete", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        method = HttpMethods.Delete;
+                        selectorModel.EndpointMetadata.Add(new HttpDeleteAttribute());
                     }
                     else
                     {
-                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromBodyAttribute() });
+                        selectorModel.EndpointMetadata.Add(new HttpPostAttribute());
+                    }
+                    selectorModel.ActionConstraints.Add(new HttpMethodActionConstraint(new[] { method }));
+                    var templateBulder = new StringBuilder(ApplyActionName(actionModel.ActionName));
+                    foreach (var parameterModel in actionModel.Parameters)
+                    {
+                        if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            templateBulder.Append("{" + parameterModel.Name + "}");
+                        }
+                    }
+                    if (selectorModel.AttributeRouteModel == null)
+                    {
+                        selectorModel.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(templateBulder.ToString()));
                     }
                 }
-                if (selectorModel.AttributeRouteModel == null)
+                else
                 {
-                    selectorModel.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(templateBulder.ToString()));
+                    //如果为设置模型绑定
+                    foreach (var parameterModel in actionModel.Parameters)
+                    {
+                        if (parameterModel.BindingInfo != null)
+                        {
+                            continue;
+                        }
+                        if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromRouteAttribute() });
+                        }
+                        else if (selectorModel.EndpointMetadata.Any(a => a.GetType() == typeof(HttpGetAttribute)) || parameterModel.ParameterType.IsValueType || parameterModel.ParameterType == typeof(string))
+                        {
+                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromQueryAttribute() });
+                        }
+                        else
+                        {
+                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromBodyAttribute() });
+                        }
+                    }
                 }
             }
         }
@@ -133,13 +158,33 @@ namespace Soul.DynamicWebAPI
         {
             foreach (var item in _options.ServiceNameEndTrims)
             {
-                var index = name.LastIndexOf(item);
-                if (index > 0)
-                {
-                    name = name.Substring(0, name.Length - item.Length);
-                }
+                name = name.RightTrim(item);
             }
             return name;
+        }
+
+        private string ApplyActionName(string name)
+        {
+            foreach (var item in new string[] { "GET", "CREATE", "UPDATE", "DELETE" })
+            {
+                if (name.StartsWith(item, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    name = name.LeftTrim(item);
+                    break;
+                }
+            }
+            name = name.RightTrim("Async");
+            name = name.RightTrim("List");
+            var sb = new StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (char.IsUpper(name[i]) && i != 0)
+                {
+                    sb.Append('/');
+                }
+                sb.Append(name[i]);
+            }
+            return sb.ToString();
         }
     }
 }

@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Soul.DynamicWebAPI\Soul.DynamicWebAPI.csproj" />
+    <ProjectReference Include="..\Soul.DynamicWebAPI\Soul.DynamicWebApi.csproj" />
   </ItemGroup>
 
 </Project>
