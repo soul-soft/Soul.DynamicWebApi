@@ -14,7 +14,7 @@ namespace Soul.DynamicWebApi.Test.RemoteServices
         {
             _logger = logger;
         }
-        public Task CreateMyJobAsync()
+        public Task CreateMyJobAsync(Todo1Dto dto)
         {
             _logger.LogInformation("Createxxx");
             return Task.CompletedTask;

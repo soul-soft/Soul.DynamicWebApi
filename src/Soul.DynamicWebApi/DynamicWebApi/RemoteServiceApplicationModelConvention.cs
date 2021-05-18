@@ -91,7 +91,7 @@ namespace Soul.DynamicWebApi
             }
             foreach (var selectorModel in actionModel.Selectors)
             {
-                //如果存在httpMethod
+                //如果不存在httpMethod
                 if (selectorModel.ActionConstraints.Count == 0)
                 {
                     var method = HttpMethods.Post;
@@ -115,7 +115,11 @@ namespace Soul.DynamicWebApi
                         selectorModel.EndpointMetadata.Add(new HttpPostAttribute());
                     }
                     selectorModel.ActionConstraints.Add(new HttpMethodActionConstraint(new[] { method }));
-                    var templateBulder = new StringBuilder(ApplyActionName(actionModel.ActionName));
+                    if (selectorModel.AttributeRouteModel == null)
+                    {
+                        selectorModel.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(ApplyActionName(actionModel.ActionName)));
+                    }
+                    var templateBulder = new StringBuilder();
                     foreach (var parameterModel in actionModel.Parameters)
                     {
                         if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
@@ -123,32 +127,31 @@ namespace Soul.DynamicWebApi
                             templateBulder.Append("{" + parameterModel.Name + "}");
                         }
                     }
-                    if (selectorModel.AttributeRouteModel == null)
+                    if (templateBulder.Length > 0)
                     {
-                        selectorModel.AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(templateBulder.ToString()));
+                        var routeModel = new AttributeRouteModel(new RouteAttribute(templateBulder.ToString()));
+                        selectorModel.AttributeRouteModel = AttributeRouteModel
+                                .CombineAttributeRouteModel(selectorModel.AttributeRouteModel, routeModel);
                     }
                 }
-                else
+                foreach (var parameterModel in actionModel.Parameters)
                 {
-                    //如果为设置模型绑定
-                    foreach (var parameterModel in actionModel.Parameters)
+                    //如果存在设置模型绑定
+                    if (parameterModel.BindingInfo != null)
                     {
-                        if (parameterModel.BindingInfo != null)
-                        {
-                            continue;
-                        }
-                        if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromRouteAttribute() });
-                        }
-                        else if (selectorModel.EndpointMetadata.Any(a => a.GetType() == typeof(HttpGetAttribute)) || parameterModel.ParameterType.IsValueType || parameterModel.ParameterType == typeof(string))
-                        {
-                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromQueryAttribute() });
-                        }
-                        else
-                        {
-                            parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromBodyAttribute() });
-                        }
+                        continue;
+                    }
+                    if (string.Equals(parameterModel.Name, "ID", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromRouteAttribute() });
+                    }
+                    else if (selectorModel.EndpointMetadata.Any(a => a.GetType() == typeof(HttpGetAttribute)) || parameterModel.ParameterType.IsValueType || parameterModel.ParameterType == typeof(string))
+                    {
+                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromQueryAttribute() });
+                    }
+                    else
+                    {
+                        parameterModel.BindingInfo = BindingInfo.GetBindingInfo(new[] { new FromBodyAttribute() });
                     }
                 }
             }
