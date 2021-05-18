@@ -1,5 +1,4 @@
-# Soul.DynamicWebAPI
-Soul.DynamicWebAPI
+# Soul.DynamicWebApi
 
 abp vnext 动态api实现
 
